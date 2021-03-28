@@ -22,7 +22,16 @@ class _MyAppState extends State<MyApp> {
   Future<void> startBarcodeScanStream() async {
     FlutterBarcodeScanner.getBarcodeStreamReceiver(
             '#ff6666', 'Cancel', true, ScanMode.BARCODE)!
-        .listen((barcode) => print(barcode));
+        .listen((barcode) async {
+      print(barcode);
+      if( barcode == '-1')
+      {
+
+      }else{
+        await FlutterBarcodeScanner.closeScanner();
+      }
+
+    });
   }
 
   Future<void> scanQR() async {

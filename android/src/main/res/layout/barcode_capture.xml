@@ -12,11 +12,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.amolg.flutterbarcodescanner.camera.GraphicOverlay
+        <!--<com.amolg.flutterbarcodescanner.camera.GraphicOverlay
             android:id="@+id/graphicOverlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#44000000" />
+            android:background="#44000000" />-->
+      <com.amolg.flutterbarcodescanner.camera.GraphicOverlay
+        android:id="@+id/graphicOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent" />
 
     </com.amolg.flutterbarcodescanner.camera.CameraSourcePreview>
 

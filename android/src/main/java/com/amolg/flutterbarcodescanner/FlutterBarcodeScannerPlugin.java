@@ -1,7 +1,10 @@
 package com.amolg.flutterbarcodescanner;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Application;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +16,8 @@ import androidx.lifecycle.LifecycleOwner;
 
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.Map;
 
@@ -65,6 +70,11 @@ public class FlutterBarcodeScannerPlugin implements MethodCallHandler, ActivityR
     private Lifecycle lifecycle;
     private LifeCycleObserver observer;
 
+  public static class MessageEvent {
+    String type;
+    String jsonParam;
+  }
+
     public FlutterBarcodeScannerPlugin() {
     }
 
@@ -116,6 +126,16 @@ public class FlutterBarcodeScannerPlugin implements MethodCallHandler, ActivityR
                 isContinuousScan = (boolean) arguments.get("isContinuousScan");
 
                 startBarcodeScannerActivityView((String) arguments.get("cancelButtonText"), isContinuousScan);
+
+            }else if (call.method.equals("closeScanner")) {
+              // https://github.com/greenrobot/EventBus
+              MessageEvent messageEvent = new MessageEvent();
+              messageEvent.type = call.method;
+              EventBus.getDefault().post(messageEvent);
+              pendingResult.success("-1");
+
+              pendingResult = null;
+              arguments = null;
             }
         } catch (Exception e) {
             Log.e(TAG, "onMethodCall: " + e.getLocalizedMessage());

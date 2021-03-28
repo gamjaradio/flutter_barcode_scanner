@@ -56,6 +56,10 @@ import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.io.IOException;
 
 /**
@@ -105,6 +109,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
+
         try {
             setContentView(R.layout.barcode_capture);
 
@@ -175,6 +180,14 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
                 .show();
     }
 
+  @Subscribe(threadMode = ThreadMode.MAIN)
+  public void onMessageEvent(FlutterBarcodeScannerPlugin.MessageEvent event) {
+      if( event.type.equals("closeScanner")){
+        closeScanner();
+      }
+
+  }
+
     @Override
     public boolean onTouchEvent(MotionEvent e) {
         boolean b = scaleGestureDetector.onTouchEvent(e);
@@ -182,6 +195,20 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
         boolean c = gestureDetector.onTouchEvent(e);
 
         return b || c || super.onTouchEvent(e);
+    }
+
+    public void closeScanner(){
+      this.runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          Barcode barcode = new Barcode();
+          barcode.rawValue = "-1";
+          barcode.displayValue = "-1";
+          FlutterBarcodeScannerPlugin.onBarcodeScanReceiver(barcode);
+          finish();
+        }
+      });
+
     }
 
     /**
@@ -255,6 +282,14 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
         }
     }
 
+  @Override
+  public void onStart() {
+    super.onStart();
+    if( EventBus.getDefault() != null){
+      EventBus.getDefault().register(this);
+    }
+
+  }
     /**
      * Releases the resources associated with the camera source, the associated detectors, and the
      * rest of the processing pipeline.
@@ -265,6 +300,10 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
         if (mPreview != null) {
             mPreview.release();
         }
+        if( EventBus.getDefault() != null){
+          EventBus.getDefault().unregister(this);
+        }
+
     }
 
     /**
@@ -401,11 +440,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
                 Log.e("BarcodeCaptureActivity", "FlashOnFailure: " + e.getLocalizedMessage());
             }
         } else if (i == R.id.btnBarcodeCaptureCancel) {
-            Barcode barcode = new Barcode();
-            barcode.rawValue = "-1";
-            barcode.displayValue = "-1";
-            FlutterBarcodeScannerPlugin.onBarcodeScanReceiver(barcode);
-            finish();
+            closeScanner();
         }
     }
 

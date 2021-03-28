@@ -44,6 +44,11 @@ class FlutterBarcodeScanner {
     return barcodeResult;
   }
 
+  static Future<void> closeScanner()async{
+    Map params = <String, dynamic>{};
+    await _channel.invokeMethod('closeScanner', params);
+  }
+
   /// Returns a continuous stream of barcode scans until the user cancels the
   /// operation.
   ///
