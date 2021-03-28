@@ -286,7 +286,10 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
   public void onStart() {
     super.onStart();
     if( EventBus.getDefault() != null){
-      EventBus.getDefault().register(this);
+      // 이미 있는지 체크. 있는데 또넣으면 뻑남.
+      if(EventBus.getDefault().isRegistered(this) == false){
+        EventBus.getDefault().register(this);
+      }
     }
 
   }
