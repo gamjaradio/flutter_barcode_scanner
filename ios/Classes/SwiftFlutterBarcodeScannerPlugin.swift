@@ -22,6 +22,7 @@ public class SwiftFlutterBarcodeScannerPlugin: NSObject, FlutterPlugin, ScanBarc
     public static var isContinuousScan:Bool=false
     static var barcodeStream:FlutterEventSink?=nil
     public static var scanMode = ScanMode.QR.index
+    var controller:BarcodeScannerViewController!
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         viewController = (UIApplication.shared.delegate?.window??.rootViewController)!
@@ -89,11 +90,22 @@ public class SwiftFlutterBarcodeScannerPlugin: NSObject, FlutterPlugin, ScanBarc
         }
         
         pendingResult=result
-        let controller = BarcodeScannerViewController()
-        controller.delegate = self
+        
+        print("call.method:"+call.method)
+        
+        if( self.controller != nil && call.method  == "closeScanner" ){
+            self.controller.cancelButtonClicked()
+            pendingResult("-1")
+            return;
+        }
+        
+        
+        self.controller = BarcodeScannerViewController()
+        self.controller.delegate = self
         
         if #available(iOS 13.0, *) {
-            controller.modalPresentationStyle = .fullScreen
+            self.controller.modalPresentationStyle = .fullScreen
+//            self.controller.modalPresentationStyle = .pageSheet
         }
         
         if checkCameraAvailability(){
@@ -106,7 +118,7 @@ public class SwiftFlutterBarcodeScannerPlugin: NSObject, FlutterPlugin, ScanBarc
                 AVCaptureDevice.requestAccess(for: .video) { success in
                     DispatchQueue.main.async {
                         if success {
-                            SwiftFlutterBarcodeScannerPlugin.viewController.present(controller
+                            SwiftFlutterBarcodeScannerPlugin.viewController.present(self.controller
                             , animated: true) {
                                 
                             }
@@ -131,6 +143,17 @@ public class SwiftFlutterBarcodeScannerPlugin: NSObject, FlutterPlugin, ScanBarc
     public func userDidScanWith(barcode: String){
         pendingResult(barcode)
     }
+    public func closeScanner(){
+        self.controller.dismiss(animated: true)
+        self.pendingResult("-1")
+//        DispatchQueue.main.async {
+//            self.controller.dismiss(animated: true, completion: {
+//                SwiftFlutterBarcodeScannerPlugin.onBarcodeScanReceiver(barcode: "-1")
+//            })
+//            //self.controller.cancelButtonClicked( );
+//            self.pendingResult(nil)
+//        }
+    }
     
     /// Show common alert dialog
     func showAlertDialog(title:String,message:String){
@@ -143,6 +166,7 @@ public class SwiftFlutterBarcodeScannerPlugin: NSObject, FlutterPlugin, ScanBarc
 
 protocol ScanBarcodeDelegate {
     func userDidScanWith(barcode: String)
+ 
 }
 
 class BarcodeScannerViewController: UIViewController {
@@ -192,10 +216,10 @@ class BarcodeScannerViewController: UIViewController {
     /// Create and return flash button
     private lazy var flashIcon : UIButton! = {
         let flashButton = UIButton()
-        flashButton.setTitle("Flash",for:.normal)
+//        flashButton.setTitle("Flash",for:.normal)
         flashButton.translatesAutoresizingMaskIntoConstraints=false
         
-        flashButton.setImage(UIImage(named: "ic_flash_off", in: Bundle(identifier: "org.cocoapods.flutter-barcode-scanner"), compatibleWith: nil),for:.normal)
+        flashButton.setImage(UIImage(named: "flash_on"),for:.normal)
         
         flashButton.addTarget(self, action: #selector(BarcodeScannerViewController.flashButtonClicked), for: .touchUpInside)
         return flashButton
@@ -366,10 +390,10 @@ class BarcodeScannerViewController: UIViewController {
     /// Flash button click event listener
     @IBAction private func flashButtonClicked() {
         if #available(iOS 10.0, *) {
-            if flashIcon.image(for: .normal) == UIImage(named: "ic_flash_off", in: Bundle(identifier: "org.cocoapods.flutter-barcode-scanner"), compatibleWith: nil){
-                flashIcon.setImage(UIImage(named: "ic_flash_on", in: Bundle(identifier: "org.cocoapods.flutter-barcode-scanner"), compatibleWith: nil),for:.normal)
+            if flashIcon.image(for: .normal) == UIImage(named: "flash_off"){
+                flashIcon.setImage(UIImage(named: "flash_on"),for:.normal)
             }else{
-                flashIcon.setImage(UIImage(named: "ic_flash_off", in: Bundle(identifier: "org.cocoapods.flutter-barcode-scanner"), compatibleWith: nil),for:.normal)
+                flashIcon.setImage(UIImage(named: "flash_off"),for:.normal)
             }
             toggleFlash()
         } else {
@@ -403,7 +427,7 @@ class BarcodeScannerViewController: UIViewController {
     
     
     /// Cancel button click event listener
-    @IBAction private func cancelButtonClicked() {
+    @IBAction  func cancelButtonClicked() {
         if SwiftFlutterBarcodeScannerPlugin.isContinuousScan{
             self.dismiss(animated: true, completion: {
                 SwiftFlutterBarcodeScannerPlugin.onBarcodeScanReceiver(barcode: "-1")

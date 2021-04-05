@@ -123,3 +123,9 @@ would :heart: to see any contribution, give :star:  if you like
 </p>
 
 E-mail: amol.gangadhare@gmail.com
+
+
+### 플러그인 개발방법
+android : example/android/build.gradle 을 안드로이드스튜디오로 열어야됨.
+ios : example/ios 를 xcode 로 열것. 
+*** android 나 ios 나 flutter.io ( android만. xcode 는 include 못하는 다른 에러) 에러난다면 vscode 로 해당 example 실행하면 자동 빌드되면서 라이브러리들이 채워짐. 그 이후 android studio, xcode로 열어서 작업
